@@ -6,6 +6,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import hashlib
 from . import db
 from flask_login import login_user, login_required, logout_user, current_user
+import re
+import json
 
 auth = Blueprint('auth', __name__)
 
@@ -15,7 +17,55 @@ auth = Blueprint('auth', __name__)
 # Post method is on when submit button is pressed and then we take data with 'request' method and compare to data
 # in DB. checks if email does exist and if passwords matches, and then logs in
 
+def check_pass_comp(pass_complexity, password):
+    pattern = re.compile(pass_complexity) #eg "[A-Za-z0-9]+"
+    if pattern.match(password): 
+        return True
+    else: 
+        return False
 
+
+def check_history(num_of_pass_history,password,pass_history):
+    print(pass_history[-num_of_pass_history:])
+    for p in pass_history[-num_of_pass_history:]:
+        print("his", p.encode('utf-8'))
+        print("pass", password.encode('utf-8'))
+        if bcrypt.checkpw(password.encode('utf-8'), p.encode('utf-8')):
+            return False
+    return True
+
+def check_len(password,pass_len):
+    return len(password) >= pass_len
+
+
+def check_words(password, pass_forbidden):
+    for w in pass_forbidden:
+        if w in password:
+            return False
+    return True
+
+def pass_requirements(password, password_history):
+    with open ("password_config.json") as pass_config:
+        json_config = json.load(pass_config)
+        pass_len = json_config['length']
+        pass_complexity = json_config['complexity']
+        num_of_pass_history = json_config['history']
+        pass_forbidden = json_config['forbidden_words']
+        login_retries = json_config['login_retries']
+    
+    valid_len = check_len(password, pass_len)
+    is_complex = check_pass_comp(pass_complexity, password)
+    not_in_history = check_history(num_of_pass_history,password,password_history.split(','))
+    valid_words = check_words(password, pass_forbidden)
+    if  valid_len and is_complex and not_in_history and valid_words:
+        return False
+    else:
+        print("valid_len",valid_len)
+        print("is_complex",is_complex)
+        print("not_in_history",not_in_history)
+        print("valid_words",valid_words)
+        return True
+        
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     print('login is active')
@@ -70,16 +120,14 @@ def sign_up():
             flash('First name must be greater than 1 character.', category='error')
         elif password1 != password2:
             flash('Passwords don\'t match.', category='error')
-        elif len(password1) < 7:
-            flash('Password must be at least 7 characters.', category='error')
+        elif pass_requirements(password1,[]):
+             flash('Password doesn\'t match the requirements.', category='error')
 
         else:
             encoded_password = password1.encode('utf-8')
             salt = bcrypt.gensalt()
-            print(salt)
             hashed = bcrypt.hashpw(encoded_password, salt)
-            print(hashed)
-            new_user = Users(email=email, first_name=first_name, password=hashed)
+            new_user = Users(email=email, first_name=first_name, password=hashed, password_history=hashed.decode('ascii'))
             db.session.add(new_user)
             db.session.commit()
             login_user(new_user, remember=True)
@@ -95,18 +143,21 @@ def change():
     if request.method == 'POST':
         current_password = request.form.get('current_password')
         new_password_1 = request.form.get('new_password_1')
-        print(new_password_1)
         new_password_2 = request.form.get('new_password_2')
 
         encoded_user_password = current_password.encode('utf-8')
         if bcrypt.checkpw(encoded_user_password, current_user.password):
             if new_password_1 != new_password_2:
                 flash('Passwords don\'t match.', category='error')
+            elif pass_requirements(new_password_1,current_user.password_history):
+                flash('Password doesn\'t match the requirements.', category='error')
             else:
                 encoded_new_password = new_password_1.encode('utf-8')
                 salt = bcrypt.gensalt()
                 hashed = bcrypt.hashpw(encoded_new_password, salt)
                 current_user.password = hashed
+                current_user.password_history = current_user.password_history +"," +hashed.decode('ascii')
+                db.session.commit()
                 flash('Password changed successfully', category='success')
                 return redirect(url_for('views.home'))
         else:
