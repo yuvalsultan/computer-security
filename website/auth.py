@@ -1,5 +1,5 @@
 import bcrypt
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask import Blueprint, render_template, request, flash, redirect, url_for,session
 import flask_login
 from .models import Users
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -28,10 +28,9 @@ def check_pass_comp(pass_complexity, password):
 def check_history(num_of_pass_history,password,pass_history):
     print(pass_history[-num_of_pass_history:])
     for p in pass_history[-num_of_pass_history:]:
-        print("his", p.encode('utf-8'))
-        print("pass", password.encode('utf-8'))
-        if bcrypt.checkpw(password.encode('utf-8'), p.encode('utf-8')):
-            return False
+        if p:
+            if bcrypt.checkpw(password.encode('utf-8'), p.encode('utf-8')):
+                return False
     return True
 
 def check_len(password,pass_len):
@@ -65,10 +64,21 @@ def pass_requirements(password, password_history):
         print("not_in_history",not_in_history)
         print("valid_words",valid_words)
         return True
-        
+
+
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     print('login is active')
+
+    try:
+        session['attempts']-=1
+        if session['attempts'] < 0:
+            flash('Max retries exceeded! please try again later', category='error')
+            return render_template("login.html", user=current_user)
+    except:
+        with open ("password_config.json") as pass_config:
+            login_retries =  json.load(pass_config)['login_retries']
+            session['attempts'] = login_retries
 
     if request.method == 'POST':
         email = request.form.get('email')
@@ -120,7 +130,7 @@ def sign_up():
             flash('First name must be greater than 1 character.', category='error')
         elif password1 != password2:
             flash('Passwords don\'t match.', category='error')
-        elif pass_requirements(password1,[]):
+        elif pass_requirements(password1,""):
              flash('Password doesn\'t match the requirements.', category='error')
 
         else:
