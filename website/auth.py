@@ -8,7 +8,8 @@ from . import db
 from flask_login import login_user, login_required, logout_user, current_user
 import re
 import json
-
+with open ("password_config.json") as pass_config:
+    CONFIG = json.load(pass_config)
 auth = Blueprint('auth', __name__)
 
 
@@ -44,13 +45,10 @@ def check_words(password, pass_forbidden):
     return True
 
 def pass_requirements(password, password_history):
-    with open ("password_config.json") as pass_config:
-        json_config = json.load(pass_config)
-        pass_len = json_config['length']
-        pass_complexity = json_config['complexity']
-        num_of_pass_history = json_config['history']
-        pass_forbidden = json_config['forbidden_words']
-        login_retries = json_config['login_retries']
+    pass_len = CONFIG['length']
+    pass_complexity = CONFIG['complexity']
+    num_of_pass_history = CONFIG['history']
+    pass_forbidden = CONFIG['forbidden_words']
     
     valid_len = check_len(password, pass_len)
     is_complex = check_pass_comp(pass_complexity, password)
@@ -76,9 +74,7 @@ def login():
             flash('Max retries exceeded! please try again later', category='error')
             return render_template("login.html", user=current_user)
     except:
-        with open ("password_config.json") as pass_config:
-            login_retries =  json.load(pass_config)['login_retries']
-            session['attempts'] = login_retries
+        session['attempts'] = CONFIG['login_retries']
 
     if request.method == 'POST':
         email = request.form.get('email')
