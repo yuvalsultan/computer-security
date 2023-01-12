@@ -3,5 +3,29 @@ content %}
 <form method="POST"><br/>
   <h3 align="center">Forget password</h3>
 
+  <div class="form-group">
+    <label for="new_password_1">New password</label>
+    <input
+      type="password"
+      class="form-control"
+      id="new_password_1"
+      name="new_password_1"
+      placeholder="Enter password"
+    />
+  </div>
+  <br />
+  <div class="form-group">
+    <label for="new_password_2">New password again (Confirm)</label>
+    <input
+      type="password"
+      class="form-control"
+      id="new_password_2"
+      name="new_password_2"
+      placeholder="Confirm password"
+    />
+  </div>
+  <button type="Change password" class="btn btn-primary">Login</button>
+  <br/>
+  <br/>
 </form>
 {% endblock %}

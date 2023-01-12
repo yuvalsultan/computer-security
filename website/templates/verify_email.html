@@ -1,0 +1,21 @@
+{% extends "base.html" %} {% block title %}forget{% endblock %} {% block
+    content %}
+    <form method="POST"><br/>
+      <h3 align="center">Forget password</h3>
+    
+      <div class="form-group">
+        <label for="email_for_reset">Please enter the key we sent you from email to reset your password</label>
+        <input
+          type="key"
+          class="form-control"
+          id="key_for_reset"
+          name="key_for_reset"
+          placeholder="Enter key"
+        />
+      </div>
+      <button type="send email" class="btn btn-primary">Send</button>
+      <br/>
+      <br/>
+    </form>
+    {% endblock %}
+    

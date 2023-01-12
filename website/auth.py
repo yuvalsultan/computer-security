@@ -4,6 +4,13 @@ import flask_login
 from .models import Users
 from werkzeug.security import generate_password_hash, check_password_hash
 import hashlib
+import random
+import smtplib
+import ssl
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
 from . import db
 from flask_login import login_user, login_required, logout_user, current_user
 import re
@@ -116,10 +123,10 @@ def sign_up():
         password1 = request.form.get('password1')
         password2 = request.form.get('password2')
 
-        user = Users.query.filter_by(email=email).first()
+        user = Users.query.filter_by(email=email).first() #take this to the check if email is not in db
 
-        if user:
-            flash('Email already exists.', category='error')
+        if user: #take this to the check if email is not in db
+            flash('Email already exists.', category='error')  #take this to the check if email is not in db
         elif len(email) < 4:
             flash('Email must be greater than 3 characters.', category='error')
         elif len(first_name) < 2:
@@ -138,8 +145,9 @@ def sign_up():
             db.session.commit()
             login_user(new_user, remember=True)
             flash('Account created!', category='success')
+            print(password1)
             return redirect(url_for('views.home'))
-
+    
     return render_template("sign_up.html", user=current_user)
 
 
@@ -171,6 +179,99 @@ def change():
     return render_template("change.html", user=current_user)
 
 
-@auth.route('/forget')
+
+@auth.route('/forget_password_email' , methods=['GET', 'POST'])
 def forget():
-    return render_template("forget.html", user=current_user)
+    if request.method == 'POST': 
+        to_email_address = request.form.get('email_for_reset')
+
+        user = Users.query.filter_by(email=to_email_address).first()
+        if user:
+            ###First version
+            reset_key = hashlib.sha1(str(random.getrandbits(160)).encode('utf-8')).hexdigest()
+
+            from_email_address = 'csproj23A@gmail.com'
+            from_email_psw = 'oocwvzgpuaonhldu'
+
+            message = reset_key
+
+            email_context=ssl.create_default_context()
+
+            smtp = smtplib.SMTP("smtp.gmail.com", 465)
+            smtp.starttls(context=email_context)
+            smtp.login(from_email_address, from_email_psw)
+            smtp.sendmail(from_email_address, to_email_address, message)
+
+            return redirect(url_for('auth.verify', messages = message , user_email = to_email_address))
+        
+
+            #Second version
+            # from_email_address = 'csproj23A@gmail.com'
+            # from_email_psw = 'oocwvzgpuaonhldu'
+            
+            # subject = 'Password reset key'
+            # body = reset_key
+
+            # message = MIMEMultipart()
+            # message['From'] = from_email_address
+            # message['To'] = to_email_address
+            # message['Subject'] = subject
+            # message.attach(MIMEText(body, 'plain'))
+
+            # # email_context=ssl.create_default_context()
+
+            # smtp = smtplib.SMTP("smtp.gmail.com", 587)
+            # # smtp.starttls(context=email_context)
+            # smtp.starttls()
+            # smtp.login(from_email_address, from_email_psw)
+            # smtp.sendmail(from_email_address, to_email_address, message)
+
+            ############Do Something##############
+            
+
+        else:
+            flash('Email does not exist.', category='error')        
+    return render_template("forget_password_email.html", user=current_user)
+
+
+
+@auth.route('/verify' , methods=['GET', 'POST'])
+def verify():
+    if request.method == 'POST':
+        sent_key = request.args['messages'] #get the message from the url_for
+        check_key = request.form.get('key_for_reset')
+
+        if sent_key == check_key:
+            user_email = request.args['user_email'] 
+            return redirect(url_for('auth.reset', user_email = user_email))
+        else:
+            flash('Key does not match , try again!', category='error')    
+    return render_template('verify_email.html', user=current_user)
+
+
+@auth.route('/reset' , methods=['GET', 'POST'])
+def reset():
+    current_user_email = request.args['user_email']
+    user = Users.query.filter_by(email=current_user_email).first()
+
+    if request.method == 'POST':
+        new_password_1 = request.form.get('new_password_1')
+        new_password_2 = request.form.get('new_password_2')
+
+        
+        if new_password_1 != new_password_2:
+            flash('Passwords don\'t match.', category='error')
+        elif pass_requirements(new_password_1,""):
+            flash('Password doesn\'t match the requirements.', category='error')
+        else:
+            encoded_new_password = new_password_1.encode('utf-8')
+            salt = bcrypt.gensalt()
+            hashed = bcrypt.hashpw(encoded_new_password, salt)
+            user.password = hashed
+            user.password_history = user.password_history +"," +hashed.decode('ascii')
+            db.session.commit()
+            flash('Password changed successfully', category='success')
+            return redirect(url_for('views.home'))
+    
+    return render_template('change_after_forget.html', user=current_user)
+
