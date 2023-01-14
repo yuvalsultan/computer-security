@@ -88,7 +88,7 @@ def login():
         password = request.form.get('password')
 
         #Faulty behavior 
-        query = f"select * from Users where email = '{email}' and password = {password}" # reveal the entire table with input: '' or 1=1
+        query = f"select * from Users where email = '{email}' and password = '{password}'" # reveal the entire table with input: '' or 1=1
         print(query)
         faultyUser = db.engine.execute(query)
         users =  [row[0] for row in faultyUser]

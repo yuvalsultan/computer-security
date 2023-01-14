@@ -1,0 +1,27 @@
+{% extends "base.html" %} {% block title %}Search{% endblock %} {% block
+content %}
+{% autoescape false %}
+<form method="POST"><br/>
+  <h3 align="center">Welcome to your account</h3>
+  <div>
+    <br/>
+    <h5>Search customer by Name</h5>
+    <br/>
+    <label for="fullName">Full name</label>
+    <input
+      class="form-control"
+      id="fullName"
+      name="fullName"
+      placeholder="Enter fullName"
+
+    />
+  <button type="submit" class="btn btn-primary">search</button>
+  {{text}}
+</div>
+
+
+
+
+</form>
+{% endautoescape %}
+{% endblock %}
