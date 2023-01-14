@@ -8,6 +8,7 @@ from flask import session
 app = create_app()
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
     # context.verify_mode = ssl.CERT_REQUIRED
     # context.load_verify_locations('./CAPrivate.pem')
@@ -15,3 +16,14 @@ if __name__ == '__main__':
 
     # context.load_cert_chain('./server.crt', './server.key')
     app.run(debug=True,ssl_context=context)
+=======
+    # context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+    # context.verify_mode = ssl.CERT_REQUIRED
+    # context.load_verify_locations('./CAPrivate.pem')
+    # # context.load_cert_chain('./cert.pem', './key.pem')
+    #
+    # context.load_cert_chain('./server.crt', './server.key')
+    #app.run(debug=True,ssl_context=context)
+
+    app.run(debug=True)
+>>>>>>> d7b9d2f96d5bfd5a847167fa2b66ac2d1bbf0445
