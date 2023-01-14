@@ -64,10 +64,18 @@ def pass_requirements(password, password_history):
     if  valid_len and is_complex and not_in_history and valid_words:
         return False
     else:
-        print("valid_len",valid_len)
-        print("is_complex",is_complex)
-        print("not_in_history",not_in_history)
-        print("valid_words",valid_words)
+        # print("valid_len",valid_len)
+        # print("is_complex",is_complex)
+        # print("not_in_history",not_in_history)
+        # print("valid_words",valid_words)
+        if valid_len == False :
+            flash("Password length is less than 10", category='error')
+        if  is_complex == False :
+            flash("Password is not complex enough", category='error')
+        if  not_in_history == False :
+            flash("Please choose a password that you have not set before", category='error')
+        if  valid_words == False :
+            flash("Invalid words for password", category='error')
         return True
 
 
@@ -142,7 +150,8 @@ def sign_up():
         elif password1 != password2:
             flash('Passwords don\'t match.', category='error')
         elif pass_requirements(password1,""):
-             flash('Password doesn\'t match the requirements.', category='error')
+            #  flash('Password doesn\'t match the requirements.', category='error')
+            pass
 
         else:
             encoded_password = password1.encode('utf-8')
@@ -172,7 +181,8 @@ def change():
             if new_password_1 != new_password_2:
                 flash('Passwords don\'t match.', category='error')
             elif pass_requirements(new_password_1,current_user.password_history):
-                flash('Password doesn\'t match the requirements.', category='error')
+                # flash('Password doesn\'t match the requirements.', category='error')
+                pass
             else:
                 encoded_new_password = new_password_1.encode('utf-8')
                 salt = bcrypt.gensalt()
@@ -269,7 +279,7 @@ def reset():
         
         if new_password_1 != new_password_2:
             flash('Passwords don\'t match.', category='error')
-        elif pass_requirements(new_password_1,""):
+        elif pass_requirements(new_password_1, user.password_history):
             flash('Password doesn\'t match the requirements.', category='error')
         else:
             encoded_new_password = new_password_1.encode('utf-8')
