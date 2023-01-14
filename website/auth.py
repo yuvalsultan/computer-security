@@ -87,6 +87,14 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
 
+        #Faulty behavior 
+        query = f"select * from Users where email = '{email}' and password = {password}" # reveal the entire table with input: '' or 1=1
+        print(query)
+        faultyUser = db.engine.execute(query)
+        users =  [row[0] for row in faultyUser]
+        print (users)
+
+        #solution
         user = Users.query.filter_by(email=email).first()  # Searches email required
         if user:
             encoded_user_password = password.encode('utf-8')
@@ -197,7 +205,7 @@ def forget():
 
             email_context=ssl.create_default_context()
 
-            smtp = smtplib.SMTP("smtp.gmail.com", 465)
+            smtp = smtplib.SMTP("smtp.gmail.com", 587)
             smtp.starttls(context=email_context)
             smtp.login(from_email_address, from_email_psw)
             smtp.sendmail(from_email_address, to_email_address, message)
