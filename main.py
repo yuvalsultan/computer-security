@@ -9,9 +9,9 @@ app = create_app()
 
 if __name__ == '__main__':
     context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-    context.verify_mode = ssl.CERT_REQUIRED
-    context.load_verify_locations('./CAPrivate.pem')
-    # context.load_cert_chain('./cert.pem', './key.pem')
+    # context.verify_mode = ssl.CERT_REQUIRED
+    # context.load_verify_locations('./CAPrivate.pem')
+    context.load_cert_chain('./cert.pem', './key.pem')
 
-    context.load_cert_chain('./server.crt', './server.key')
+    # context.load_cert_chain('./server.crt', './server.key')
     app.run(debug=True,ssl_context=context)
