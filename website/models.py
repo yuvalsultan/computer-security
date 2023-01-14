@@ -20,3 +20,13 @@ class Users(db.Model, UserMixin):
         self.first_name = first_name
         self.password = password
         self.password_history = password_history
+
+
+class Costumers(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    fullName = db.Column(db.String(150))
+    email = db.Column(db.String(150), unique=True)
+
+    def __init__(self, fullName, email):
+        self.fullName = fullName
+        self.email = email
