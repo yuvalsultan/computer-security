@@ -28,7 +28,7 @@ def home():
             if costumersQuery:
                 costumers = costumersQuery.fullName
         except:
-             print(new_costumer)
+             costumers=""
     return render_template("home.html", user=current_user, text=costumers)
 
 @views.route('/search', methods=['GET', 'POST'])
