@@ -23,7 +23,12 @@ def home():
         new_costumer = Costumers(fullName=fullName, email=email)
         db.session.add(new_costumer)
         db.session.commit()
-
+        try:
+            costumersQuery = Costumers.query.filter_by(email=email).first()
+            if costumersQuery:
+                costumers = costumersQuery.fullName
+        except:
+             print(new_costumer)
     return render_template("home.html", user=current_user, text=costumers)
 
 @views.route('/search', methods=['GET', 'POST'])
